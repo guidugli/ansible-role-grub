@@ -1,0 +1,62 @@
+---
+- name: test if grub_timeout is set correctly
+  assert:
+    that:
+      - grub_timeout is defined
+      - grub_timeout | int(-1) >= 0
+    quiet: yes
+
+- name: test if grub_recordfail_timeout is set correctly
+  assert:
+    that:
+      - grub_recordfail_timeout is defined
+      - grub_recordfail_timeout | int(-1) >= 0
+    quiet: yes
+
+- name: Test if grub user and password are set correctly
+  assert:
+    that:
+      - grub_superuser is defined
+      - grub_superuser is string
+      - grub_superuser | length > 0
+      - grub_password is defined
+      - grub_password is search('grub.pbkdf2.sha512')
+    quiet: yes
+
+- name: test if grub_options_present is set correctly
+  assert:
+    that:
+      - grub_options_present is iterable
+      - grub_options_present | length > 0
+    quiet: yes
+  when: grub_options_present is defined
+
+- name: test if item in grub_options_present is set correctly
+  assert:
+    that:
+      - item.option is defined
+      - item.option is string
+      - item.option | length > 0
+    quiet: yes
+  loop: "{{ grub_options_present }}"
+  loop_control:
+    label: "{{ item.option }}"
+  when: grub_options_present is defined
+
+- name: test if grub_options_absent is set correctly
+  assert:
+    that:
+      - grub_options_absent is iterable
+      - grub_options_absent | length > 0
+    quiet: yes
+  when: grub_options_absent is defined
+
+- name: test if item in grub_options_absent is set correctly
+  assert:
+    that:
+      - item is defined
+      - item is string
+      - item | length > 0
+    quiet: yes
+  loop: "{{ grub_options_absent }}"
+  when: grub_options_absent is defined

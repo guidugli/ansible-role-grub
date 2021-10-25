@@ -1,0 +1,75 @@
+---
+
+- name: Check grub GRUB_CMDLINE_LINUX line args
+  shell: |
+    set -o pipefail
+    grep {{ grub_cmdline_var_name }}= {{ grub_default_path }} | cut -d= -f2- | tr -d \"
+  args:
+    executable: /bin/bash
+  register: grub_current_cmdline
+  changed_when: false
+
+- name: Transform retrieved option as a list of options
+  set_fact:
+    grub_current_options: "{{ grub_current_cmdline.stdout.split() | default([], true) | list }}"
+
+- name: Transform retrieved options from list to dict
+  set_fact:
+    grub_current_options_dict: >
+      {{ grub_current_options_dict | default([]) +
+       [{ 'option': item.split('=') | first, 'value': item.split('=')[1] | default('') }] }}
+  loop: "{{ grub_current_options }}"
+
+- name: Define options to be added and removed
+  vars:
+    grub_current_options_keys: "{{  grub_current_options_dict | default([]) | map(attribute='option') | list }}"
+    grub_options_present_keys: "{{ grub_options_present | default([]) | map(attribute='option') | list }}"
+    grub_options_absent_keys: "{{ grub_options_absent | default([]) }}"
+  set_fact:
+    grub_options_to_add: "{{  grub_options_present_keys | difference(grub_current_options_keys) }}"
+    grub_options_to_remove: "{{ grub_current_options_keys | intersect(grub_options_absent_keys) }}"
+    grub_options_equal: "{{ grub_current_options_keys | intersect(grub_options_present_keys) }}"
+
+- name: Get options that need to have the values changed
+  vars:
+    optionsadd: "{{ grub_options_present | selectattr('option','equalto', item) | flatten | first }}"
+    currentoption: "{{ grub_current_options_dict | selectattr('option', 'equalto', item) | flatten | first }}"
+  set_fact:
+    grub_options_to_add: "{{ grub_options_to_add | default([]) + [item] }}"
+    grub_options_to_remove: "{{ grub_options_to_remove | default([]) + [item] }}"
+  loop: "{{ grub_options_equal }}"
+  when:
+    - optionsadd is defined
+    - currentoption is defined
+    - optionsadd.value is defined
+    - currentoptions is defined
+    - optionsadd.value | string != currentoption.value | string
+
+- name: Show grub information
+  debug:
+    msg:
+      - "Current options: {{ grub_current_options }}"
+      - "Requested list of options to add: {{ grub_options_present }}"
+      - "Requested list of options to remove: {{ grub_options_absent }}"
+      - "Options to be added to current options: {{ grub_options_to_add }}"
+      - "Options to be removed from current options: {{ grub_options_to_remove }}"
+
+- name: Remove options
+  replace:
+    path: "{{ grub_default_path }}"
+    regexp: '(^{{ grub_cmdline_var_name }}=)"(.*)(?:\s*{{ item }}(?:=.+?)?)(.*?)"$'
+    replace: '\1"\2\3"'
+  loop: "{{ grub_options_to_remove }}"
+  notify: update grub
+
+- name: Add options
+  vars:
+    record: "{{ grub_options_present | selectattr('option','equalto', item) | flatten | first }}"
+    str: "{{ record.option + (('=' + record.value|string) if
+          (record.value is defined and (record.value | string | length > 0)) else '') }}"
+  replace:
+    path: "{{ grub_default_path }}"
+    regexp: '^{{ grub_cmdline_var_name }}="'
+    replace: '{{ grub_cmdline_var_name }}="{{ str }} '
+  loop: "{{ grub_options_to_add }}"
+  notify: update grub

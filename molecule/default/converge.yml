@@ -1,0 +1,102 @@
+---
+- name: Converge
+  hosts: all
+  vars:
+    grub_timeout: 5
+    grub_recordfail_timeout: "{{ grub_timeout }}"
+    grub_options_present:
+      - option: cgroup_enable
+        value: memory
+      - option: quiet
+      - option: 'some.option'
+        value: 'complex,off'
+    grub_options_absent:
+      - splash
+      - rd.driver.pre
+    grub_superuser: testuser
+    grub_password: grub.pbkdf2.sha512.10000.65AA561A865A2CA878473E9080A65E9F0614AEB11BE9BC08DA8E48FF51A4B285B68C299908E75256C992104265C6C9A46A418C889FC5975DD183C501B4998BEA.E050D8AE711A6424E48A946D95C7D10C12A56BE1270939455D676ED7B07FA0307371EF835FB1C8E4B3EF78A78E62AE1F582908355296259C744DDE7E78D5AB19  # yamllint disable-line rule:line-length
+  pre_tasks:
+
+    - name: update Ubuntu/Debian systems
+      apt:
+        name: ['dialog', 'grub2']
+#        upgrade: dist
+        update_cache: true
+        cache_valid_time: 3600
+      when: ansible_pkg_mgr == "apt"
+
+    - name: Check if /etc/default/grub exists
+      raw: "test -e /etc/default/grub"
+      changed_when: false
+      failed_when: false
+      register: molecule_cmd_result
+
+    # On RedHat systems containers, it does not create /etc/default/grub
+    # so we create a fake one
+    - name: Create /etc/default/grub
+      blockinfile:
+        path: /etc/default/grub
+        create: yes
+        mode: 644
+        owner: root
+        group: root
+        block: |
+          GRUB_TIMEOUT=5
+          GRUB_DISTRIBUTOR="$(sed 's, release .*$,,g' /etc/system-release)"
+          GRUB_DEFAULT=saved
+          GRUB_DISABLE_SUBMENU=true
+          GRUB_TERMINAL_OUTPUT="console"
+          GRUB_CMDLINE_LINUX="quiet splash rd.driver.pre=vfio-pci pci-stub.ids=1221:0333"
+          GRUB_DISABLE_RECOVERY="true"
+          GRUB_ENABLE_BLSCFG=true
+      when: molecule_cmd_result.rc != 0
+
+    - name: "Check if {{ gpath }} exists"
+      vars:
+        gpath: "{{ '/boot/grub2' if ansible_os_family == 'RedHat' else '/boot/grub' }}"
+      raw: "test -e {{ gpath }}"
+      changed_when: false
+      failed_when: false
+      register: molecule_cmd_result
+
+
+    # On both debian and redhat, no grub.cfg will exist until it is all configured
+    # so we just create an empty one
+    - name: "Create {{ gpath }}"
+      vars:
+        gpath: "{{ '/boot/grub2' if ansible_os_family == 'RedHat' else '/boot/grub' }}"
+      file:
+        path: "{{ gpath }}"
+        state: directory
+        mode: '0755'
+        owner: root
+        group: root
+        modification_time: preserve
+        access_time: preserve
+      when: molecule_cmd_result.rc != 0
+
+    - name: "Check if {{ g_cfg }} exists"
+      vars:
+        gpath: "{{ '/boot/grub2' if ansible_os_family == 'RedHat' else '/boot/grub' }}"
+        g_cfg: "{{ gpath }}/grub.cfg"
+      raw: "test -e {{ g_cfg }}"
+      changed_when: false
+      failed_when: false
+      register: molecule_cmd_result
+
+    - name: "Create {{ g_cfg }}"
+      vars:
+        gpath: "{{ '/boot/grub2' if ansible_os_family == 'RedHat' else '/boot/grub' }}"
+        g_cfg: "{{ gpath }}/grub.cfg"
+      file:
+        path: "{{ g_cfg }}"
+        state: touch
+        mode: '0644'
+        owner: root
+        group: root
+        modification_time: preserve
+        access_time: preserve
+      when: molecule_cmd_result.stdout != 0
+
+  roles:
+    - role: guidugli.grub

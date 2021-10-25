@@ -1,0 +1,27 @@
+---
+## tasks file for grub
+
+# This role does not make any sense on a container
+# but in order to be able to test at least the options
+# tasks, the package is installed and options set
+# even on containers. On real world, this role should
+# not be loaded for containers.
+
+- name: include assert.yml
+  include_tasks: assert.yml
+  run_once: yes
+
+- name: install required packages
+  package:
+    name: "{{ grub_packages }}"
+    state: present
+    update_cache: yes
+
+- name: include grub.yml
+  include_tasks: grub.yml
+
+- name: include options_mgmt.yml
+  include_tasks: options_mgmt.yml
+
+- name: flush handlers
+  meta: flush_handlers
