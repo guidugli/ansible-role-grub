@@ -29,4 +29,4 @@ grub_cmdline_var_name: "{{ _grub_cmdline_var_name[ansible_os_family] | default(_
 
 grub_d_path: /etc/grub.d
 
-_container_types: ['docker', 'podman', 'lxc', 'containerd']
+_container_types: ['docker', 'podman', 'lxc', 'containerd', 'container']

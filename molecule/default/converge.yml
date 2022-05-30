@@ -18,7 +18,7 @@
   pre_tasks:
 
     - name: update Ubuntu/Debian systems
-      apt:
+      ansible.builtin.apt:
         name: ['dialog', 'grub2']
 #        upgrade: dist
         update_cache: true
@@ -26,7 +26,7 @@
       when: ansible_pkg_mgr == "apt"
 
     - name: Check if /etc/default/grub exists
-      raw: "test -e /etc/default/grub"
+      ansible.builtin.raw: "test -e /etc/default/grub"
       changed_when: false
       failed_when: false
       register: molecule_cmd_result
@@ -34,7 +34,7 @@
     # On RedHat systems containers, it does not create /etc/default/grub
     # so we create a fake one
     - name: Create /etc/default/grub
-      blockinfile:
+      ansible.builtin.blockinfile:
         path: /etc/default/grub
         create: yes
         mode: 644
@@ -54,7 +54,7 @@
     - name: "Check if {{ gpath }} exists"
       vars:
         gpath: "{{ '/boot/grub2' if ansible_os_family == 'RedHat' else '/boot/grub' }}"
-      raw: "test -e {{ gpath }}"
+      ansible.builtin.raw: "test -e {{ gpath }}"
       changed_when: false
       failed_when: false
       register: molecule_cmd_result
@@ -65,7 +65,7 @@
     - name: "Create {{ gpath }}"
       vars:
         gpath: "{{ '/boot/grub2' if ansible_os_family == 'RedHat' else '/boot/grub' }}"
-      file:
+      ansible.builtin.file:
         path: "{{ gpath }}"
         state: directory
         mode: '0755'
@@ -79,7 +79,7 @@
       vars:
         gpath: "{{ '/boot/grub2' if ansible_os_family == 'RedHat' else '/boot/grub' }}"
         g_cfg: "{{ gpath }}/grub.cfg"
-      raw: "test -e {{ g_cfg }}"
+      ansible.builtin.raw: "test -e {{ g_cfg }}"
       changed_when: false
       failed_when: false
       register: molecule_cmd_result
@@ -88,7 +88,7 @@
       vars:
         gpath: "{{ '/boot/grub2' if ansible_os_family == 'RedHat' else '/boot/grub' }}"
         g_cfg: "{{ gpath }}/grub.cfg"
-      file:
+      ansible.builtin.file:
         path: "{{ g_cfg }}"
         state: touch
         mode: '0644'

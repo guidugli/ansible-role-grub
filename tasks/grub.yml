@@ -2,7 +2,7 @@
 ## tasks file for grub
 
 - name: "Ensure {{ grub_d_path }} is set to 700 and owned by root"
-  file:
+  ansible.builtin.file:
     path: "{{ grub_d_path }}"
     state: directory
     mode: '0700'
@@ -14,7 +14,7 @@
 # For Debian family, the path is usually /boot/grub
 # For RedHat family, the path is usually /boot/grub2
 - name: Detect grub path on /boot filesystem
-  shell: |
+  ansible.builtin.shell: |
     if [ -e /boot/grub -a -e /boot/grub2 ]
     then
       echo -n '{{ '/boot/grub' if ansible_os_family == 'Debian' else '/boot/grub2' }}'
@@ -33,13 +33,13 @@
   when: grub_boot_path is not defined
 
 - name: Store result of previous task
-  set_fact:
+  ansible.builtin.set_fact:
     grub_boot_path: "{{ grub_boot_path | default(result_boot_dir.stdout, true) }}"
 
 # Detect grub cfg file on the system
 # if not specified in input variables
 - name: Get GRUB configuration file path
-  shell: |
+  ansible.builtin.shell: |
     if [ -e /sys/firmware/efi -a -e /boot/efi/EFI/{{ ansible_distribution | lower }}/grub.cfg ]
     then
       echo -n '/boot/efi/EFI/{{ ansible_distribution | lower }}'
@@ -55,11 +55,11 @@
   when: grub_cfg_path is not defined
 
 - name: Store result of previous task
-  set_fact:
+  ansible.builtin.set_fact:
     grub_cfg_path: "{{ grub_cfg_path | default(result_cfg_path.stdout, true) }}"
 
 - name: set GRUB_TIMEOUT
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "{{ grub_default_path }}"
     line: GRUB_TIMEOUT={{ grub_timeout }}
     create: yes
@@ -67,7 +67,7 @@
   notify: update grub
 
 - name: set GRUB_RECORDFAIL_TIMEOUT
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "{{ grub_default_path }}"
     line: GRUB_RECORDFAIL_TIMEOUT={{ grub_recordfail_timeout }}
     create: yes
@@ -75,7 +75,7 @@
   notify: update grub
 
 - name: ensure file already exists at dest to work around 'invalid selinux context' issue
-  file:
+  ansible.builtin.file:
     path: "{{ grub_cfg_path }}/user.cfg"
     state: touch
     owner: root
@@ -89,7 +89,7 @@
 
 # Set grub password
 - name: Ensure GRUB password is set on RedHat systems
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "{{ grub_cfg_path }}/user.cfg"
     regexp: '^GRUB2_PASSWORD='
     line: "GRUB2_PASSWORD={{ grub_password  }}"
@@ -105,7 +105,7 @@
 
 # Set grub password on Debian systems
 - name: Ensure GRUB password is set on Debian
-  blockinfile:
+  ansible.builtin.blockinfile:
     path: "{{ grub_d_path }}/40_custom"
     marker: "# {mark} ANSIBLE MANAGED BLOCK "
     create: yes
@@ -118,7 +118,7 @@
   notify: update grub
 
 - name: Set unrestricted option on grub
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: "{{ grub_d_path }}/10_linux"
     regexp: 'CLASS="--class gnu-linux --class gnu --class os"'
     line: 'CLASS="--class gnu-linux --class gnu --class os --unrestricted"'
