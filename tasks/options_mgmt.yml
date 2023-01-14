@@ -65,7 +65,7 @@
 - name: Add options
   vars:
     record: "{{ grub_options_present | selectattr('option', 'equalto', item) | flatten | first }}"
-    str: "{{ record.option + (('=' + record.value|string) if
+    str: "{{ record.option + (('=' + record.value | string) if
           (record.value is defined and (record.value | string | length > 0)) else '') }}"
   ansible.builtin.replace:
     path: "{{ grub_default_path }}"

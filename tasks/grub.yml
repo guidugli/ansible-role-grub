@@ -92,7 +92,7 @@
   ansible.builtin.lineinfile:
     path: "{{ grub_cfg_path }}/user.cfg"
     regexp: '^GRUB2_PASSWORD='
-    line: "GRUB2_PASSWORD={{ grub_password  }}"
+    line: "GRUB2_PASSWORD={{ grub_password }}"
     create: yes
     mode: '0700'
     owner: root
