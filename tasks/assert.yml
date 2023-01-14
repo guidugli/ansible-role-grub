@@ -1,12 +1,12 @@
 ---
-- name: test if grub_timeout is set correctly
+- name: Test if grub_timeout is set correctly
   ansible.builtin.assert:
     that:
       - grub_timeout is defined
       - grub_timeout | int(-1) >= 0
     quiet: yes
 
-- name: test if grub_recordfail_timeout is set correctly
+- name: Test if grub_recordfail_timeout is set correctly
   ansible.builtin.assert:
     that:
       - grub_recordfail_timeout is defined
@@ -23,7 +23,7 @@
       - grub_password is search('grub.pbkdf2.sha512')
     quiet: yes
 
-- name: test if grub_options_present is set correctly
+- name: Test if grub_options_present is set correctly
   ansible.builtin.assert:
     that:
       - grub_options_present is iterable
@@ -31,7 +31,7 @@
     quiet: yes
   when: grub_options_present is defined
 
-- name: test if item in grub_options_present is set correctly
+- name: Test if item in grub_options_present is set correctly
   ansible.builtin.assert:
     that:
       - item.option is defined
@@ -43,7 +43,7 @@
     label: "{{ item.option }}"
   when: grub_options_present is defined
 
-- name: test if grub_options_absent is set correctly
+- name: Test if grub_options_absent is set correctly
   ansible.builtin.assert:
     that:
       - grub_options_absent is iterable
@@ -51,7 +51,7 @@
     quiet: yes
   when: grub_options_absent is defined
 
-- name: test if item in grub_options_absent is set correctly
+- name: Test if item in grub_options_absent is set correctly
   ansible.builtin.assert:
     that:
       - item is defined

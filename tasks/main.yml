@@ -7,21 +7,21 @@
 # even on containers. On real world, this role should
 # not be loaded for containers.
 
-- name: include assert.yml
+- name: Include assert.yml
   ansible.builtin.include_tasks: assert.yml
   run_once: yes
 
-- name: install required packages
+- name: Install required packages
   ansible.builtin.package:
     name: "{{ grub_packages }}"
     state: present
     update_cache: yes
 
-- name: include grub.yml
+- name: Include grub.yml
   ansible.builtin.include_tasks: grub.yml
 
-- name: include options_mgmt.yml
+- name: Include options_mgmt.yml
   ansible.builtin.include_tasks: options_mgmt.yml
 
-- name: flush handlers
+- name: Flush handlers
   ansible.builtin.meta: flush_handlers

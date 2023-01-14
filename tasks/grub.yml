@@ -64,7 +64,7 @@
     line: GRUB_TIMEOUT={{ grub_timeout }}
     create: yes
     mode: "0664"
-  notify: update grub
+  notify: Update grub
 
 - name: set GRUB_RECORDFAIL_TIMEOUT
   ansible.builtin.lineinfile:
@@ -72,7 +72,7 @@
     line: GRUB_RECORDFAIL_TIMEOUT={{ grub_recordfail_timeout }}
     create: yes
     mode: "0664"
-  notify: update grub
+  notify: Update grub
 
 - name: ensure file already exists at dest to work around 'invalid selinux context' issue
   ansible.builtin.file:
@@ -101,7 +101,7 @@
     serole: object_r
     seuser: system_u
   when: grub_password is defined and ansible_os_family == 'RedHat'
-  notify: update grub
+  notify: Update grub
 
 # Set grub password on Debian systems
 - name: Ensure GRUB password is set on Debian
@@ -115,7 +115,7 @@
       set superusers="{{ grub_superuser }}"
       password_pbkdf2  {{ grub_superuser }} {{ grub_password }}
   when: grub_password is defined and ansible_os_family == 'Debian'
-  notify: update grub
+  notify: Update grub
 
 - name: Set unrestricted option on grub
   ansible.builtin.lineinfile:
@@ -123,4 +123,4 @@
     regexp: 'CLASS="--class gnu-linux --class gnu --class os"'
     line: 'CLASS="--class gnu-linux --class gnu --class os --unrestricted"'
   when: grub_password is defined
-  notify: update grub
+  notify: Update grub
