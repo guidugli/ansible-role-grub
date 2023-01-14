@@ -60,7 +60,7 @@
     regexp: '(^{{ grub_cmdline_var_name }}=)"(.*)(?:\s*{{ item }}(?:=.+?)?)(.*?)"$'
     replace: '\1"\2\3"'
   loop: "{{ grub_options_to_remove }}"
-  notify: update grub
+  notify: Update grub
 
 - name: Add options
   vars:
@@ -72,4 +72,4 @@
     regexp: '^{{ grub_cmdline_var_name }}="'
     replace: '{{ grub_cmdline_var_name }}="{{ str }} '
   loop: "{{ grub_options_to_add }}"
-  notify: update grub
+  notify: Update grub
