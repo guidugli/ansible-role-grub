@@ -22,17 +22,17 @@
 
 - name: Define options to be added and removed
   vars:
-    grub_current_options_keys: "{{  grub_current_options_dict | default([]) | map(attribute='option') | list }}"
+    grub_current_options_keys: "{{ grub_current_options_dict | default([]) | map(attribute='option') | list }}"
     grub_options_present_keys: "{{ grub_options_present | default([]) | map(attribute='option') | list }}"
     grub_options_absent_keys: "{{ grub_options_absent | default([]) }}"
   ansible.builtin.set_fact:
-    grub_options_to_add: "{{  grub_options_present_keys | difference(grub_current_options_keys) }}"
+    grub_options_to_add: "{{ grub_options_present_keys | difference(grub_current_options_keys) }}"
     grub_options_to_remove: "{{ grub_current_options_keys | intersect(grub_options_absent_keys) }}"
     grub_options_equal: "{{ grub_current_options_keys | intersect(grub_options_present_keys) }}"
 
 - name: Get options that need to have the values changed
   vars:
-    optionsadd: "{{ grub_options_present | selectattr('option','equalto', item) | flatten | first }}"
+    optionsadd: "{{ grub_options_present | selectattr('option', 'equalto', item) | flatten | first }}"
     currentoption: "{{ grub_current_options_dict | selectattr('option', 'equalto', item) | flatten | first }}"
   ansible.builtin.set_fact:
     grub_options_to_add: "{{ grub_options_to_add | default([]) + [item] }}"
@@ -64,7 +64,7 @@
 
 - name: Add options
   vars:
-    record: "{{ grub_options_present | selectattr('option','equalto', item) | flatten | first }}"
+    record: "{{ grub_options_present | selectattr('option', 'equalto', item) | flatten | first }}"
     str: "{{ record.option + (('=' + record.value|string) if
           (record.value is defined and (record.value | string | length > 0)) else '') }}"
   ansible.builtin.replace:

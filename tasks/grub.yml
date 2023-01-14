@@ -58,7 +58,7 @@
   ansible.builtin.set_fact:
     grub_cfg_path: "{{ grub_cfg_path | default(result_cfg_path.stdout, true) }}"
 
-- name: set GRUB_TIMEOUT
+- name: Set GRUB_TIMEOUT
   ansible.builtin.lineinfile:
     path: "{{ grub_default_path }}"
     line: GRUB_TIMEOUT={{ grub_timeout }}
@@ -66,7 +66,7 @@
     mode: "0664"
   notify: Update grub
 
-- name: set GRUB_RECORDFAIL_TIMEOUT
+- name: Set GRUB_RECORDFAIL_TIMEOUT
   ansible.builtin.lineinfile:
     path: "{{ grub_default_path }}"
     line: GRUB_RECORDFAIL_TIMEOUT={{ grub_recordfail_timeout }}
@@ -74,7 +74,7 @@
     mode: "0664"
   notify: Update grub
 
-- name: ensure file already exists at dest to work around 'invalid selinux context' issue
+- name: Ensure file already exists at dest to work around 'invalid selinux context' issue
   ansible.builtin.file:
     path: "{{ grub_cfg_path }}/user.cfg"
     state: touch
