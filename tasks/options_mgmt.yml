@@ -43,14 +43,16 @@
 # avoiding removing then adding again the same values.
 - name: Get the dictionary of individual items to be removed
   ansible.builtin.set_fact:
-    grub_individual_options_to_remove_dict: "{{ grub_current_options_dict | default([]) | selectattr('option', 'in', grub_options_to_remove) | list }}"
+    grub_individual_options_to_remove_dict:
+      "{{ grub_current_options_dict | default([]) | selectattr('option', 'in', grub_options_to_remove) | list }}"
 
 - name: items to remove
   debug: var=grub_individual_options_to_remove_dict
 
 - name: Transform the dictionary to a list in the form of key=value
   ansible.builtin.set_fact:
-    grub_individual_options_to_remove: "{{ (grub_individual_options_to_remove | default([])) + [  (item.option + '=' + item.value) if item.value|length>0 else (item.option) ] }}"
+    grub_individual_options_to_remove:
+      "{{ (grub_individual_options_to_remove | default([])) + [  (item.option + '=' + item.value) if item.value|length>0 else (item.option) ] }}"
   loop: "{{ grub_individual_options_to_remove_dict | default([]) | difference(grub_options_present_dict) }}"
 
 - name: Show grub information
