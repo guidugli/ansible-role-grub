@@ -26,11 +26,9 @@ Menu timeout if "recordfail" condition is true.
 Should role perform a reboot after setting up grub?
 
     #grub_options_present:
-    #  - option: cgroup_enable
-    #    value: memory
-    #  - option: quiet
-    #  - option: 'some.option'
-    #    value: 'complex,off'
+    #  - cgroup_enable=memory
+    #  - quiet
+    #  - some.option=complex,off
 
 Options to be added to GRUB_CMDLINE_LINUX. Value is optional.
 
@@ -39,6 +37,7 @@ Options to be added to GRUB_CMDLINE_LINUX. Value is optional.
     #  - rd.driver.pre
 
 Options to be removed from GRUB_CMDLINE_LINUX. Notice that only the key should be listed. For example, to remove audit=0, just add audit to the list. Use grub_options_present to ensure the proper value is present.
+Note that if the options to be added won´t be deleted because the key is listed in this variable.
 
 
     #grub_superuser: myuser
@@ -90,11 +89,9 @@ Example Playbook
         grub_timeout: 5
         grub_recordfail_timeout: "{{ grub_timeout }}"
         grub_options_present:
-          - option: cgroup_enable
-            value: memory
-          - option: quiet
-          - option: 'some.option'
-            value: 'complex,off'
+          - cgroup_enable=memory
+          - quiet
+          - some.option=complex,off
         grub_options_absent:
           - splash
           - rd.driver.pre
