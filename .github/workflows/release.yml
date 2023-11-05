@@ -32,7 +32,7 @@ jobs:
           python-version: '3.x'
 
       - name: Install Ansible.
-        run: pip3 install ansible-base six
+        run: pip3 install --include-deps ansible-core six
 
       - name: Trigger a new import on Galaxy.
         run: ansible-galaxy role import --api-key ${{ secrets.GALAXY_API_KEY }} $(echo ${{ github.repository }} |
