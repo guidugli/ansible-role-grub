@@ -11,13 +11,11 @@ grub_allow_reboot: no
 # Options to be added
 # Value is optional
 #grub_options_present:
-#  - option: cgroup_enable
-#    value: memory
-#  - option: quiet
-#  - option: 'some.option'
-#    value: 'complex,off'
+#  - cgroup_enable=memory
+#  - quiet
+#  - some.option=complex,off
 
-# Options to be removed
+# Options to be removed based on the key name only
 # Notice that only the key should be listed
 # For example, to remove audit=0, just add
 # audit to the list. Use grub_options_present

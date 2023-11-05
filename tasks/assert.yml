@@ -34,13 +34,11 @@
 - name: Test if item in grub_options_present is set correctly
   ansible.builtin.assert:
     that:
-      - item.option is defined
-      - item.option is string
-      - item.option | length > 0
+      - item is defined
+      - item is string
+      - item | length > 0
     quiet: yes
   loop: "{{ grub_options_present }}"
-  loop_control:
-    label: "{{ item.option }}"
   when: grub_options_present is defined
 
 - name: Test if grub_options_absent is set correctly

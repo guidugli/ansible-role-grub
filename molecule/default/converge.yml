@@ -5,12 +5,13 @@
     grub_timeout: 5
     grub_recordfail_timeout: "{{ grub_timeout }}"
     grub_options_present:
-      - option: cgroup_enable
-        value: memory
-      - option: quiet
-      - option: 'some.option'
-        value: 'complex,off'
+      - cgroup_enable=memory
+      - quiet
+      - some.option=complex,off
+      - console=tty0
+      - console=ttyS0,115000
     grub_options_absent:
+      - console
       - splash
       - rd.driver.pre
     grub_superuser: testuser
