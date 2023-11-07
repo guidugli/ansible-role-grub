@@ -13,6 +13,10 @@ Role Variables
 
 **Available variables are listed below, along with default values (see defaults/main.yml):**
 
+    grub_default_path: /etc/default/grub
+
+Full path of default grub settings.
+
     grub_timeout: 5
 
 Grub menu timeout in seconds.
@@ -63,10 +67,6 @@ Packages that need to be installed to provide grub functionality.
     grub_update_grub_command:
 
 Command to be used to issue grub update.
-
-    grub_default_path: /etc/default/grub
-
-Full path of default grub settings.
 
     grub_cmdline_var_name:
 

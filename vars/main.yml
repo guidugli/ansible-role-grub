@@ -19,8 +19,6 @@ _grub_update_grub_command:
 grub_update_grub_command: "{{ _grub_update_grub_command[ansible_os_family] |
                           default(_grub_update_grub_command['default']) }}"
 
-grub_default_path: /etc/default/grub
-
 _grub_cmdline_var_name:
   default: GRUB_CMDLINE_LINUX
   Debian: GRUB_CMDLINE_LINUX_DEFAULT

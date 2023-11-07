@@ -1,6 +1,10 @@
 ---
 # defaults file for grub
 
+# Use this variable to change the path of the changes.
+# Useful when the system have /etc/default/grub.d directory.
+grub_default_path: /etc/default/grub
+
 grub_timeout: 5
 
 grub_recordfail_timeout: "{{ grub_timeout }}"
