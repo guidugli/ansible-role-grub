@@ -9,6 +9,7 @@
   args:
     executable: /bin/bash
   register: grub_current_cmdline
+  check_mode: no
   changed_when: false
 
 - name: Transform retrieved option as a list of options
