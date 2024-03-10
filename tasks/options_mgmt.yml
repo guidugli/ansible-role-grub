@@ -16,6 +16,10 @@
   ansible.builtin.set_fact:
     grub_current_options: "{{ grub_current_cmdline.stdout.split() | default([], true) | list }}"
 
+- name: Initialize grub_current_options_dict
+  ansible.builtin.set_fact:
+    grub_current_options_dict: []
+
 - name: Transform retrieved options from list to dict
   ansible.builtin.set_fact:
     grub_current_options_dict: >
@@ -29,23 +33,23 @@
     grub_options_present_dict: >
       {{ grub_options_present_dict | default([]) +
        [{ 'option': item.split('=') | first, 'value': item.split('=')[1] | default('') }] }}
-  loop: "{{ grub_options_present | default([]) }}"
+  loop: "{{ grub_options_present | default([], true) }}"
 
 - name: Define options to be added and removed
   vars:
-    grub_current_options_keys: "{{ grub_current_options_dict | default([]) | map(attribute='option') | list }}"
-    grub_options_present_keys: "{{ grub_options_present_dict | default([]) | map(attribute='option') | list }}"
-    grub_options_absent_keys: "{{ grub_options_absent | default([]) }}"
+    grub_current_options_keys: "{{ grub_current_options_dict | default([], true) | map(attribute='option') | list }}"
+    grub_options_present_keys: "{{ grub_options_present_dict | default([], true) | map(attribute='option') | list }}"
+    grub_options_absent_keys: "{{ grub_options_absent | default([], true) }}"
   ansible.builtin.set_fact:
-    grub_options_to_add: "{{ grub_options_present_dict | default([]) | difference(grub_current_options_dict) }}"
-    grub_options_to_remove: "{{ grub_current_options_keys | default([]) | intersect(grub_options_absent_keys) }}"
+    grub_options_to_add: "{{ grub_options_present_dict | default([], true) | difference(grub_current_options_dict) }}"
+    grub_options_to_remove: "{{ grub_current_options_keys | default([], true) | intersect(grub_options_absent_keys) }}"
 
 # Only remove items that should not be present in the final list,
 # avoiding removing then adding again the same values.
 - name: Get the dictionary of individual items to be removed
   ansible.builtin.set_fact:
     grub_individual_options_to_remove_dict:
-      "{{ grub_current_options_dict | default([]) | selectattr('option', 'in', grub_options_to_remove) | list }}"
+      "{{ grub_current_options_dict | default([], true) | selectattr('option', 'in', grub_options_to_remove) | list }}"
 
 - name: items to remove
   debug: var=grub_individual_options_to_remove_dict
@@ -53,24 +57,24 @@
 - name: Transform the dictionary to a list in the form of key=value
   ansible.builtin.set_fact:
     grub_individual_options_to_remove:
-      "{{ (grub_individual_options_to_remove | default([])) + [  (item.option + '=' + item.value) if item.value|length>0 else (item.option) ] }}" # yamllint disable-line rule:line-length
-  loop: "{{ grub_individual_options_to_remove_dict | default([]) | difference(grub_options_present_dict) }}"
+      "{{ (grub_individual_options_to_remove | default, true([])) + [  (item.option + '=' + item.value) if item.value|length>0 else (item.option) ] }}" # yamllint disable-line rule:line-length
+  loop: "{{ grub_individual_options_to_remove_dict | default([], true) | difference(grub_options_present_dict) }}"
 
 - name: Show grub information
   ansible.builtin.debug:
     msg:
       - "Current options: {{ grub_current_options }}"
-      - "Requested list of options to add: {{ grub_options_present | default([]) }}"
-      - "Requested list of options to remove: {{ grub_options_absent | default([]) }}"
-      - "Options to be added to current options: {{ grub_options_to_add | default([]) }}"
-      - "Options to be removed from current options: {{ grub_individual_options_to_remove | default([]) }}"
+      - "Requested list of options to add: {{ grub_options_present | default([], true) }}"
+      - "Requested list of options to remove: {{ grub_options_absent | default([], true) }}"
+      - "Options to be added to current options: {{ grub_options_to_add | default([], true) }}"
+      - "Options to be removed from current options: {{ grub_individual_options_to_remove | default([], true) }}"
 
 - name: Remove options
   ansible.builtin.replace:
     path: "{{ grub_default_path }}"
     regexp: '(^{{ grub_cmdline_var_name }}=)"(.*)(?:\s+{{ item }}?)(.*?)"$'
     replace: '\1"\2\3"'
-  loop: "{{ grub_individual_options_to_remove | default([]) }}"
+  loop: "{{ grub_individual_options_to_remove | default([], true) }}"
   notify: Update grub
 
 - name: Add options
@@ -81,5 +85,5 @@
     path: "{{ grub_default_path }}"
     regexp: '^{{ grub_cmdline_var_name }}="'
     replace: '{{ grub_cmdline_var_name }}="{{ str }} '
-  loop: "{{ grub_options_to_add | default([]) }}"
+  loop: "{{ grub_options_to_add | default([], true) }}"
   notify: Update grub
