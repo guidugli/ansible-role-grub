@@ -1,6 +1,12 @@
 ---
 # defaults file for grub
 
+# Choose the variable name to be edited.
+# Valid values are:
+# - GRUB_CMDLINE_LINUX
+# - GRUB_CMDLINE_LINUX_DEFAULT
+grub_cmdline_var_name: GRUB_CMDLINE_LINUX
+
 # Use this variable to change the path of the changes.
 # Useful when the system have /etc/default/grub.d directory.
 grub_default_path: /etc/default/grub

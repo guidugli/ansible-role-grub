@@ -13,6 +13,14 @@ Role Variables
 
 **Available variables are listed below, along with default values (see defaults/main.yml):**
 
+    grub_cmdline_var_name: GRUB_CMDLINE_LINUX
+
+Choose the variable name to be edited.
+Valid values are: 
+- GRUB_CMDLINE_LINUX
+- GRUB_CMDLINE_LINUX_DEFAULT
+
+
     grub_default_path: /etc/default/grub
 
 Full path of default grub settings.
