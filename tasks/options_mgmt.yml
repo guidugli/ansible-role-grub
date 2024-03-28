@@ -57,7 +57,7 @@
 - name: Transform the dictionary to a list in the form of key=value
   ansible.builtin.set_fact:
     grub_individual_options_to_remove:
-      "{{ (grub_individual_options_to_remove | default, true([])) + [  (item.option + '=' + item.value) if item.value|length>0 else (item.option) ] }}" # yamllint disable-line rule:line-length
+      "{{ (grub_individual_options_to_remove | default([], true) ) + [  (item.option + '=' + item.value) if item.value|length>0 else (item.option) ] }}" # yamllint disable-line rule:line-length
   loop: "{{ grub_individual_options_to_remove_dict | default([], true) | difference(grub_options_present_dict) }}"
 
 - name: Show grub information
