@@ -9,55 +9,6 @@
     owner: root
     group: root
 
-# Detect grub path on /boot
-# if not specified in input variables
-# For Debian family, the path is usually /boot/grub
-# For RedHat family, the path is usually /boot/grub2
-- name: Detect grub path on /boot filesystem
-  ansible.builtin.shell: |
-    if [ -e /boot/grub -a -e /boot/grub2 ]
-    then
-      echo -n '{{ '/boot/grub' if ansible_os_family == 'Debian' else '/boot/grub2' }}'
-    elif [ -e /boot/grub ]
-    then
-      echo -n '/boot/grub'
-    elif [ -e /boot/grub2 ]
-    then
-      echo -n '/boot/grub2'
-    else
-      echo -n 'Unknown'
-    fi
-  register: result_boot_dir
-  changed_when: false
-  failed_when: result_boot_dir.stdout == 'Unknown'
-  when: grub_boot_path is not defined
-
-- name: Store result of previous task
-  ansible.builtin.set_fact:
-    grub_boot_path: "{{ grub_boot_path | default(result_boot_dir.stdout, true) }}"
-
-# Detect grub cfg file on the system
-# if not specified in input variables
-- name: Get GRUB configuration file path
-  ansible.builtin.shell: |
-    if [ -e /sys/firmware/efi -a -e /boot/efi/EFI/{{ ansible_distribution | lower }}/grub.cfg ]
-    then
-      echo -n '/boot/efi/EFI/{{ ansible_distribution | lower }}'
-    elif [ -e {{ grub_boot_path }}/grub.cfg ]
-    then
-      echo -n '{{ grub_boot_path }}'
-    else
-      echo -n 'Unknown'
-    fi
-  register: result_cfg_path
-  changed_when: false
-  failed_when: result_cfg_path.stdout == 'Unknown'
-  when: grub_cfg_path is not defined
-
-- name: Store result of previous task
-  ansible.builtin.set_fact:
-    grub_cfg_path: "{{ grub_cfg_path | default(result_cfg_path.stdout, true) }}"
-
 - name: Set GRUB_TIMEOUT
   ansible.builtin.lineinfile:
     path: "{{ grub_default_path }}"
@@ -76,7 +27,7 @@
 
 - name: Ensure file already exists at dest to work around 'invalid selinux context' issue
   ansible.builtin.file:
-    path: "{{ grub_cfg_path }}/user.cfg"
+    path: "{{ grub_boot_path }}/user.cfg"
     state: touch
     owner: root
     group: root
@@ -90,7 +41,7 @@
 # Set grub password
 - name: Ensure GRUB password is set on RedHat systems
   ansible.builtin.lineinfile:
-    path: "{{ grub_cfg_path }}/user.cfg"
+    path: "{{ grub_boot_path }}/user.cfg"
     regexp: '^GRUB2_PASSWORD='
     line: "GRUB2_PASSWORD={{ grub_password }}"
     create: yes
