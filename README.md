@@ -57,15 +57,6 @@ Note that if the options to be added won´t be deleted because the key is listed
 
 Sets grub user and password.
 
-
-    #grub_boot_path: /boot/grub2
-
-Optional variable. The role will check if /boot/grub or /boot/grub2 are present in the target system IF this variable is not defined.
-
-    #grub_cfg_path: /boot/grub2/grub.cfg
-
-Optional variable. The role will check if it is located at grub_boot_path or at /boot/efi/EFI... if EFI is enabled on the system. Checking will happen only IF this variable is not defined.
-
 **The variables listed below do not need to be changed for targeted systems (see vars/main.yml):**
 
     grub_packages:
@@ -83,6 +74,14 @@ Represents the cmdline variable that needs to be changed in order to add or remo
     grub_d_path:
 
 Grub configuration directory.
+
+    grub_boot_path:
+
+Grub directory under /boot.
+
+    grub_conf_path:
+
+Grub configuration file full path. Default is grub_boot_path/grub.cfg.
 
 Dependencies
 ------------
