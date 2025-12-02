@@ -3,12 +3,14 @@
 
 # handlers file for grub
 - name: Update grub
+  become: yes
   ansible.builtin.command: "{{ grub_update_grub_command }}"
   changed_when: true
   when: ansible_virtualization_type not in _container_types
   notify: Reboot
 
 - name: Reboot
+  become: yes
   ansible.builtin.reboot:
     msg: "Reboot initiated by Ansible"
     connect_timeout: 5
