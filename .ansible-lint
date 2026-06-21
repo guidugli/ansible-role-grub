@@ -8,6 +8,7 @@ exclude_paths:
   - .travis.yml
   - molecule/default/inventory/
   - molecule/systemd/inventory/
+  - molecule/shared/prepare_tasks.yml
   - molecule/shared/vars.yml
 skip_list:
   - package-latest
