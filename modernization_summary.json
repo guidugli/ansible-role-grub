@@ -1,0 +1,35 @@
+{
+  "modified_files": [
+    ".ansible-lint",
+    ".yamllint",
+    "README.md",
+    "defaults/main.yml",
+    "handlers/main.yml",
+    "meta/argument_specs.yml",
+    "tasks/assert.yml",
+    "tasks/grub.yml",
+    "tasks/main.yml",
+    "tasks/options_mgmt.yml",
+    "vars/main.yml"
+  ],
+  "issues": [
+    "Privilege keyword still present in README.md"
+  ],
+  "privileged_tasks": [
+    "tasks/main.yml: Install grub packages (package management)",
+    "tasks/grub.yml: all file updates under /etc and /boot",
+    "handlers/main.yml: Update grub and Reboot"
+  ],
+  "container_warnings": [
+    "GRUB package installation and bootloader regeneration are not representative in containers.",
+    "Handler Update grub is skipped for known container virtualization types, but configuration tasks still touch /boot and /etc."
+  ],
+  "score": {
+    "privilege_handling": 18,
+    "container_compatibility": 14,
+    "systemd_safety": 20,
+    "idempotency": 16,
+    "molecule_coverage": 8,
+    "total": 76
+  }
+}

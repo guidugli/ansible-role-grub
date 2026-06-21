@@ -1,0 +1,34 @@
+---
+argument_specs:
+  main:
+    short_description: Manage grub configuration
+    options:
+      grub_cmdline_var_name:
+        type: str
+        default: GRUB_CMDLINE_LINUX
+      grub_default_path:
+        type: str
+        default: /etc/default/grub
+      grub_timeout:
+        type: int
+        default: 5
+      grub_recordfail_timeout:
+        type: str
+        default: "{{ grub_timeout }}"
+      grub_allow_reboot:
+        type: bool
+        default: false
+      grub_options_present:
+        type: list
+        elements: str
+        required: false
+      grub_options_absent:
+        type: list
+        elements: str
+        required: false
+      grub_superuser:
+        type: str
+        required: false
+      grub_password:
+        type: str
+        required: false

@@ -1,0 +1,39 @@
+---
+- name: Verify grub role
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Verify grub default file exists
+      ansible.builtin.stat:
+        path: "{{ grub_default_path | default('/etc/default/grub') }}"
+      register: grub_default_stat
+      tags:
+        - grub
+        - validate
+
+    - name: Assert grub default file exists
+      ansible.builtin.assert:
+        that:
+          - grub_default_stat.stat.exists
+        quiet: true
+      tags:
+        - grub
+        - validate
+
+    - name: Read grub default file
+      ansible.builtin.slurp:
+        path: "{{ grub_default_path | default('/etc/default/grub') }}"
+      register: grub_default_file
+      tags:
+        - grub
+        - validate
+
+    - name: Assert timeout entries are present
+      ansible.builtin.assert:
+        that:
+          - "'GRUB_TIMEOUT=' in (grub_default_file.content | b64decode)"
+          - "'GRUB_RECORDFAIL_TIMEOUT=' in (grub_default_file.content | b64decode)"
+        quiet: true
+      tags:
+        - grub
+        - validate

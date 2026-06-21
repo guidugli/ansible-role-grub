@@ -1,18 +1,17 @@
 ---
 # handlers file for grub
-
-# handlers file for grub
 - name: Update grub
-  become: yes
   ansible.builtin.command: "{{ grub_update_grub_command }}"
   changed_when: true
-  when: ansible_virtualization_type not in _container_types
+  when: (ansible_facts['virtualization_type'] | default('')) not in _container_types
   notify: Reboot
+  tags:
+    - grub
+    - service
 
 - name: Reboot
-  become: yes
   ansible.builtin.reboot:
-    msg: "Reboot initiated by Ansible"
+    msg: Reboot initiated by Ansible
     connect_timeout: 5
     reboot_timeout: 300
     pre_reboot_delay: 0
@@ -20,4 +19,7 @@
     test_command: uptime
   when:
     - grub_allow_reboot
-    - ansible_virtualization_type not in _container_types
+    - (ansible_facts['virtualization_type'] | default('')) not in _container_types
+  tags:
+    - grub
+    - service

@@ -9,7 +9,7 @@ _grub_packages:
   Debian:
     - grub2
 
-grub_packages: "{{ _grub_packages[ansible_os_family] | default(_grub_packages['default']) }}"
+grub_packages: "{{ _grub_packages[ansible_facts['os_family']] | default(_grub_packages['default']) }}"
 
 grub_d_path: /etc/grub.d
 
@@ -17,21 +17,24 @@ _grub_boot_path:
   default: /boot/grub2
   Debian: /boot/grub
 
-grub_boot_path: "{{ _grub_boot_path[ansible_os_family] |
-                default(_grub_boot_path['default']) }}"
+grub_boot_path: "{{ _grub_boot_path[ansible_facts['os_family']] | default(_grub_boot_path['default']) }}"
 
 _grub_conf_path:
   default: "{{ grub_boot_path }}/grub.cfg"
 
-grub_conf_path: "{{ _grub_conf_path[ansible_os_family] |
-                default(_grub_conf_path['default']) }}"
+grub_conf_path: "{{ _grub_conf_path[ansible_facts['os_family']] | default(_grub_conf_path['default']) }}"
 
 _grub_update_grub_command:
   default: "grub2-mkconfig -o {{ grub_conf_path }}"
   Alpine: "grub-mkconfig -o {{ grub_conf_path }}"
   Debian: update-grub
 
-grub_update_grub_command: "{{ _grub_update_grub_command[ansible_os_family] |
-                          default(_grub_update_grub_command['default']) }}"
+grub_update_grub_command: >
+  "{{ _grub_update_grub_command[ansible_facts['os_family']] | default(_grub_update_grub_command['default']) }}"
 
-_container_types: ['docker', 'podman', 'lxc', 'containerd', 'container']
+_container_types:
+  - docker
+  - podman
+  - lxc
+  - containerd
+  - container

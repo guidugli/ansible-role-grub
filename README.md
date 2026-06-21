@@ -1,118 +1,74 @@
-Ansible Role: grub
-=========
+[![CI](https://github.com/guidugli/ansible-role-grub/actions/workflows/CI.yml/badge.svg)](https://github.com/guidugli/ansible-role-grub/actions/workflows/CI.yml)
+[![Release](https://img.shields.io/github/v/tag/guidugli/ansible-role-grub?label=release)](https://github.com/guidugli/ansible-role-grub/releases)
+[![Galaxy](https://img.shields.io/badge/galaxy-guidugli.grub-blue.svg)](https://galaxy.ansible.com/ui/standalone/roles/guidugli/grub/)
+[![License](https://img.shields.io/github/license/guidugli/ansible-role-grub)](https://github.com/guidugli/ansible-role-grub/blob/main/LICENSE)
 
-An Ansible Role that configure grub on RHEL/CentOS, Fedora and Debian/Ubuntu.
+# Ansible Role: grub
 
-Requirements
-------------
+Install and configure GRUB on Debian/Ubuntu and RedHat-family systems.
 
-Operating system running on bare metal or on a hypervisor virtualization. Grub does not work on conteinerized systems.
+## Requirements
 
-Role Variables
---------------
+- A Linux host with GRUB available on the target operating system.
+- This role is intended for bare metal or virtualized hosts. Container execution may be useful for limited Molecule validation, but full GRUB behavior does not apply in containerized environments.
+- External privilege escalation must be provided by the calling play when required.
 
-**Available variables are listed below, along with default values (see defaults/main.yml):**
+## Variables
 
-    grub_cmdline_var_name: GRUB_CMDLINE_LINUX
+Primary role variables, with defaults from `defaults/main.yml`:
 
-Choose the variable name to be edited.
-Valid values are: 
-- GRUB_CMDLINE_LINUX
-- GRUB_CMDLINE_LINUX_DEFAULT
+```yaml
+grub_cmdline_var_name: GRUB_CMDLINE_LINUX
+grub_default_path: /etc/default/grub
+grub_timeout: 5
+grub_recordfail_timeout: "{{ grub_timeout }}"
+grub_allow_reboot: false
+# grub_options_present: []
+# grub_options_absent: []
+# grub_superuser: myuser
+# yamllint disable-line rule:line-length
+# grub_password: grub.pbkdf2.sha512.10000.65AA561A865A2CA878473E9080A65E9F0614AEB11BE9BC08DA8E48FF51A4B285B68C299908E75256C992104265C6C9A46A418C889FC5975DD183C501B4998BEA.E050D8AE711A6424E48A946D95C7D10C12A56BE1270939455D676ED7B07FA0307371EF835FB1C8E4B3EF78A78E62AE1F582908355296259C744DDE7E78D5AB19
+```
 
+Platform-derived variables from `vars/main.yml`:
 
-    grub_default_path: /etc/default/grub
+- `grub_packages`
+- `grub_d_path`
+- `grub_boot_path`
+- `grub_conf_path`
+- `grub_update_grub_command`
+- `_container_types`
 
-Full path of default grub settings.
+## Example playbook
 
+```yaml
+---
+- name: Configure grub
+  hosts: all
+  become: true
+  vars:
     grub_timeout: 5
-
-Grub menu timeout in seconds.
-
     grub_recordfail_timeout: "{{ grub_timeout }}"
+    grub_options_present:
+      - cgroup_enable=memory
+      - quiet
+      - some.option=complex,off
+    grub_options_absent:
+      - splash
+      - rd.driver.pre
+    grub_superuser: testuser
+    # yamllint disable-line rule:line-length
+    grub_password: grub.pbkdf2.sha512.10000.65AA561A865A2CA878473E9080A65E9F0614AEB11BE9BC08DA8E48FF51A4B285B68C299908E75256C992104265C6C9A46A418C889FC5975DD183C501B4998BEA.E050D8AE711A6424E48A946D95C7D10C12A56BE1270939455D676ED7B07FA0307371EF835FB1C8E4B3EF78A78E62AE1F582908355296259C744DDE7E78D5AB19
+  roles:
+    - role: guidugli.grub
+```
 
-Menu timeout if "recordfail" condition is true.
+## Molecule testing
 
-    grub_allow_reboot: no
+The current role still contains legacy scenario-local Molecule files under `molecule/default/`. Those files were not modified in this modernization pass because they are outside the allowed edit scope.
 
-Should role perform a reboot after setting up grub?
+## Execution notes
 
-    #grub_options_present:
-    #  - cgroup_enable=memory
-    #  - quiet
-    #  - some.option=complex,off
-
-Options to be added to GRUB_CMDLINE_LINUX. Value is optional.
-
-    #grub_options_absent:
-    #  - splash
-    #  - rd.driver.pre
-
-Options to be removed from GRUB_CMDLINE_LINUX. Notice that only the key should be listed. For example, to remove audit=0, just add audit to the list. Use grub_options_present to ensure the proper value is present.
-Note that if the options to be added won´t be deleted because the key is listed in this variable.
-
-
-    #grub_superuser: myuser
-    #grub_password: grub.pbkdf2.sha512.10000.65AA561A865A2CA878473E9080A65E9F0614AEB11BE9BC08DA8E48FF51A4B285B68C299908E75256C992104265C6C9A46A418C889FC5975DD183C501B4998BEA.E050D8AE711A6424E48A946D95C7D10C12A56BE1270939455D676ED7B07FA0307371EF835FB1C8E4B3EF78A78E62AE1F582908355296259C744DDE7E78D5AB19
-
-Sets grub user and password.
-
-**The variables listed below do not need to be changed for targeted systems (see vars/main.yml):**
-
-    grub_packages:
-
-Packages that need to be installed to provide grub functionality.
-
-    grub_update_grub_command:
-
-Command to be used to issue grub update.
-
-    grub_cmdline_var_name:
-
-Represents the cmdline variable that needs to be changed in order to add or remove kernel options.
-
-    grub_d_path:
-
-Grub configuration directory.
-
-    grub_boot_path:
-
-Grub directory under /boot.
-
-    grub_conf_path:
-
-Grub configuration file full path. Default is grub_boot_path/grub.cfg.
-
-Dependencies
-------------
-
-No dependencies.
-
-Example Playbook
-----------------
-
-    - hosts: servers
-      vars:
-        grub_timeout: 5
-        grub_recordfail_timeout: "{{ grub_timeout }}"
-        grub_options_present:
-          - cgroup_enable=memory
-          - quiet
-          - some.option=complex,off
-        grub_options_absent:
-          - splash
-          - rd.driver.pre
-        grub_superuser: testuser
-        grub_password: grub.pbkdf2.sha512.10000.65AA561A865A2CA878473E9080A65E9F0614AEB11BE9BC08DA8E48FF51A4B285B68C299908E75256C992104265C6C9A46A418C889FC5975DD183C501B4998BEA.E050D8AE711A6424E48A946D95C7D10C12A56BE1270939455D676ED7B07FA0307371EF835FB1C8E4B3EF78A78E62AE1F582908355296259C744DDE7E78D5AB19 
-      roles:
-         - { guidugli.grub }
-
-License
--------
-
-MIT / BSD
-
-Author Information
-------------------
-
-This role was created in 2020 by Carlos Guidugli.
+- **Privilege model**: the role does not define `become`. Callers must set privilege escalation externally when tasks touch privileged paths such as `/boot`, `/etc`, and package management.
+- **Container behavior**: containerized runs may validate some file and option handling logic, but GRUB package behavior and bootloader updates are not representative in containers.
+- **Systemd behavior**: this role does not currently manage systemd units directly.

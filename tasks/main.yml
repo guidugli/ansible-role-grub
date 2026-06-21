@@ -1,32 +1,43 @@
 ---
-## tasks file for grub
-
-# This role does not make any sense on a container
-# but in order to be able to test at least the options
-# tasks, the package is installed and options set
-# even on containers. On real world, this role should
-# not be loaded for containers.
+# This role does not make sense on a container, but in order to test the option
+# management logic, the package installation and config tasks still run in
+# containerized test environments. In real-world use, this role should not be
+# loaded for containers.
 
 - name: Execute role tasks
+  tags:
+    - grub
   block:
-
     - name: Include assert.yml
       ansible.builtin.include_tasks: assert.yml
-      run_once: yes
-    
-    - name: Install required packages
+      run_once: true
+      tags:
+        - grub
+        - validate
+
+    - name: Install grub packages
       ansible.builtin.package:
         name: "{{ grub_packages }}"
         state: present
-        update_cache: yes
-    
+        update_cache: true
+      tags:
+        - grub
+        - install
+
     - name: Include grub.yml
       ansible.builtin.include_tasks: grub.yml
-    
+      tags:
+        - grub
+        - config
+
     - name: Include options_mgmt.yml
       ansible.builtin.include_tasks: options_mgmt.yml
-    
+      tags:
+        - grub
+        - config
+
     - name: Flush handlers
       ansible.builtin.meta: flush_handlers
-
-  become: yes
+      tags:
+        - grub
+        - service

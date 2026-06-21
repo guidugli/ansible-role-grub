@@ -1,0 +1,23 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: true
+  become: false
+  vars:
+    grub_timeout: 5
+    grub_recordfail_timeout: "{{ grub_timeout }}"
+    grub_options_present:
+      - cgroup_enable=memory
+      - quiet
+      - some.option=complex,off
+      - console=tty0
+      - console=ttyS0,115000
+    grub_options_absent:
+      - console
+      - splash
+      - rd.driver.pre
+    grub_superuser: testuser
+    grub_password: grub.pbkdf2.sha512.10000.65AA561A865A2CA878473E9080A65E9F0614AEB11BE9BC08DA8E48FF51A4B285B68C299908E75256C992104265C6C9A46A418C889FC5975DD183C501B4998BEA.E050D8AE711A6424E48A946D95C7D10C12A56BE1270939455D676ED7B07FA0307371EF835FB1C8E4B3EF78A78E62AE1F582908355296259C744DDE7E78D5AB19  # yamllint disable-line rule:line-length
+
+  roles:
+    - role: "{{ lookup('env', 'MOLECULE_PROJECT_DIRECTORY') }}"

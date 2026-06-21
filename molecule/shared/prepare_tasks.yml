@@ -1,0 +1,30 @@
+---
+- name: Ensure /etc/default exists
+  ansible.builtin.file:
+    path: /etc/default
+    state: directory
+    mode: '0755'
+  tags:
+    - grub
+    - config
+
+- name: Seed grub defaults file for container-based testing
+  ansible.builtin.copy:
+    dest: /etc/default/grub
+    content: |
+      GRUB_CMDLINE_LINUX=""
+      GRUB_TIMEOUT=5
+      GRUB_RECORDFAIL_TIMEOUT=5
+    mode: '0644'
+  tags:
+    - grub
+    - config
+
+- name: Ensure grub.d directory exists
+  ansible.builtin.file:
+    path: /etc/grub.d
+    state: directory
+    mode: '0755'
+  tags:
+    - grub
+    - config

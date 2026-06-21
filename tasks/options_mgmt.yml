@@ -1,39 +1,54 @@
 ---
-
-# Retrieve kernel options from grub and generated a list (grub_current_options)
-# and dict (grub_current_options_dict) to be used later
-- name: Check grub GRUB_CMDLINE_LINUX line args
+# Retrieve kernel options from grub and generate a list (grub_current_options)
+# and dict (grub_current_options_dict) to be used later.
+- name: Check grub {{ grub_cmdline_var_name }} line args
   ansible.builtin.shell: |
     set -o pipefail
-    grep {{ grub_cmdline_var_name }}= {{ grub_default_path }} | cut -d= -f2- | tr -d \"
+    grep {{ grub_cmdline_var_name }}= {{ grub_default_path }} | cut -d= -f2- | tr -d '"'
   args:
     executable: /bin/bash
   register: grub_current_cmdline
-  check_mode: no
+  check_mode: false
   changed_when: false
+  tags:
+    - grub
+    - config
 
 - name: Transform retrieved option as a list of options
   ansible.builtin.set_fact:
     grub_current_options: "{{ grub_current_cmdline.stdout.split() | default([], true) | list }}"
+  tags:
+    - grub
+    - config
 
 - name: Initialize grub_current_options_dict
   ansible.builtin.set_fact:
     grub_current_options_dict: []
+  tags:
+    - grub
+    - config
 
 - name: Transform retrieved options from list to dict
   ansible.builtin.set_fact:
-    grub_current_options_dict: >
-      {{ grub_current_options_dict | default([]) +
-       [{ 'option': item.split('=') | first, 'value': item.split('=')[1] | default('') }] }}
+    grub_current_options_dict: >-
+      {{ grub_current_options_dict | default([]) + [
+        {'option': item.split('=') | first, 'value': item.split('=')[1] | default('')}
+      ] }}
   loop: "{{ grub_current_options }}"
+  tags:
+    - grub
+    - config
 
-# Create a dict variable from the user provided grub_options_present variable
 - name: Transform specified options from list to dict
   ansible.builtin.set_fact:
-    grub_options_present_dict: >
-      {{ grub_options_present_dict | default([]) +
-       [{ 'option': item.split('=') | first, 'value': item.split('=')[1] | default('') }] }}
+    grub_options_present_dict: >-
+      {{ grub_options_present_dict | default([]) + [
+        {'option': item.split('=') | first, 'value': item.split('=')[1] | default('')}
+      ] }}
   loop: "{{ grub_options_present | default([], true) }}"
+  tags:
+    - grub
+    - config
 
 - name: Define options to be added and removed
   vars:
@@ -43,22 +58,36 @@
   ansible.builtin.set_fact:
     grub_options_to_add: "{{ grub_options_present_dict | default([], true) | difference(grub_current_options_dict) }}"
     grub_options_to_remove: "{{ grub_current_options_keys | default([], true) | intersect(grub_options_absent_keys) }}"
+  tags:
+    - grub
+    - config
 
-# Only remove items that should not be present in the final list,
-# avoiding removing then adding again the same values.
 - name: Get the dictionary of individual items to be removed
   ansible.builtin.set_fact:
-    grub_individual_options_to_remove_dict:
-      "{{ grub_current_options_dict | default([], true) | selectattr('option', 'in', grub_options_to_remove) | list }}"
+    grub_individual_options_to_remove_dict: >-
+      {{ grub_current_options_dict | default([], true) | selectattr('option', 'in', grub_options_to_remove) | list }}
+  tags:
+    - grub
+    - config
 
-- name: items to remove
-  debug: var=grub_individual_options_to_remove_dict
+- name: Show items to remove
+  ansible.builtin.debug:
+    var: grub_individual_options_to_remove_dict
+  tags:
+    - grub
+    - validate
 
 - name: Transform the dictionary to a list in the form of key=value
   ansible.builtin.set_fact:
-    grub_individual_options_to_remove:
-      "{{ (grub_individual_options_to_remove | default([], true) ) + [  (item.option + '=' + item.value) if item.value|length>0 else (item.option) ] }}" # yamllint disable-line rule:line-length
-  loop: "{{ grub_individual_options_to_remove_dict | default([], true) | difference(grub_options_present_dict) }}"
+    grub_individual_options_to_remove: >-
+      {{ (grub_individual_options_to_remove | default([], true)) + [
+        (item.option + '=' + item.value) if item.value | length > 0 else item.option
+      ] }}
+  loop: "{{ grub_individual_options_to_remove_dict | default([], true) |
+    difference(grub_options_present_dict | default([], true)) }}"
+  tags:
+    - grub
+    - config
 
 - name: Show grub information
   ansible.builtin.debug:
@@ -68,22 +97,33 @@
       - "Requested list of options to remove: {{ grub_options_absent | default([], true) }}"
       - "Options to be added to current options: {{ grub_options_to_add | default([], true) }}"
       - "Options to be removed from current options: {{ grub_individual_options_to_remove | default([], true) }}"
+  tags:
+    - grub
+    - validate
 
 - name: Remove options
   ansible.builtin.replace:
     path: "{{ grub_default_path }}"
-    regexp: '(^{{ grub_cmdline_var_name }}=)"(.*)(?:\s+{{ item }}?)(.*?)"$'
-    replace: '\1"\2\3"'
+    regexp: '(^{{ grub_cmdline_var_name }}=")(.+?)(?:\s+{{ item | regex_escape() }})(.*?)"$'
+    replace: '\1\2\3"'
   loop: "{{ grub_individual_options_to_remove | default([], true) }}"
   notify: Update grub
+  tags:
+    - grub
+    - config
 
 - name: Add options
   vars:
-    str: "{{ item.option + (('=' + item.value | string) if
-          (item.value is defined and (item.value | string | length > 0)) else '') }}"
+    str: >-
+      {{ item.option + (('=' + (item.value | string))
+      if (item.value is defined and (item.value | string | length > 0))
+      else '') }}
   ansible.builtin.replace:
     path: "{{ grub_default_path }}"
     regexp: '^{{ grub_cmdline_var_name }}="'
     replace: '{{ grub_cmdline_var_name }}="{{ str }} '
   loop: "{{ grub_options_to_add | default([], true) }}"
   notify: Update grub
+  tags:
+    - grub
+    - config
