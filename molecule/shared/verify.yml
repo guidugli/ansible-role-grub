@@ -28,11 +28,26 @@
         - grub
         - validate
 
-    - name: Assert timeout entries are present
+    - name: Assert grub timeout entries are present
+      vars:
+        grub_default_content: "{{ grub_default_file.content | b64decode }}"
       ansible.builtin.assert:
         that:
-          - "'GRUB_TIMEOUT=' in (grub_default_file.content | b64decode)"
-          - "'GRUB_RECORDFAIL_TIMEOUT=' in (grub_default_file.content | b64decode)"
+          - "'GRUB_TIMEOUT=5' in grub_default_content"
+          - "'GRUB_RECORDFAIL_TIMEOUT=5' in grub_default_content"
+        quiet: true
+      tags:
+        - grub
+        - validate
+
+    - name: Assert configured grub kernel options are present
+      vars:
+        grub_default_content: "{{ grub_default_file.content | b64decode }}"
+      ansible.builtin.assert:
+        that:
+          - "'cgroup_enable=memory' in grub_default_content"
+          - "'quiet' in grub_default_content"
+          - "'some.option=complex,off' in grub_default_content"
         quiet: true
       tags:
         - grub

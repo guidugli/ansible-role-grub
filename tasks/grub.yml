@@ -34,6 +34,18 @@
     - grub
     - config
 
+- name: Ensure container test boot path exists
+  ansible.builtin.file:
+    path: "{{ grub_boot_path }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  when: (ansible_facts['virtualization_type'] | default('')) in _container_types
+  tags:
+    - grub
+    - config
+
 - name: Ensure file already exists at dest to work around invalid selinux context issue
   ansible.builtin.file:
     path: "{{ grub_boot_path }}/user.cfg"
@@ -88,12 +100,23 @@
     - grub
     - config
 
+- name: Check whether grub linux script exists
+  ansible.builtin.stat:
+    path: "{{ grub_d_path }}/10_linux"
+  register: grub_linux_script_stat
+  changed_when: false
+  tags:
+    - grub
+    - validate
+
 - name: Set unrestricted option on grub
   ansible.builtin.lineinfile:
     path: "{{ grub_d_path }}/10_linux"
     regexp: 'CLASS="--class gnu-linux --class gnu --class os"'
     line: 'CLASS="--class gnu-linux --class gnu --class os --unrestricted"'
-  when: grub_password is defined
+  when:
+    - grub_password is defined
+    - grub_linux_script_stat.stat.exists
   notify: Update grub
   tags:
     - grub

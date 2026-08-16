@@ -1,34 +1,49 @@
 ---
 argument_specs:
   main:
-    short_description: Manage grub configuration
+    short_description: Manage GRUB configuration
+    description:
+      - Configure GRUB defaults, kernel command line options, and optional bootloader authentication.
     options:
       grub_cmdline_var_name:
         type: str
         default: GRUB_CMDLINE_LINUX
+        choices:
+          - GRUB_CMDLINE_LINUX
+          - GRUB_CMDLINE_LINUX_DEFAULT
+        description: GRUB variable containing kernel command line options to manage.
       grub_default_path:
         type: str
         default: /etc/default/grub
+        description: Path to the GRUB defaults file to update.
       grub_timeout:
         type: int
         default: 5
+        description: Value written to GRUB_TIMEOUT.
       grub_recordfail_timeout:
         type: str
         default: "{{ grub_timeout }}"
+        description: Value written to GRUB_RECORDFAIL_TIMEOUT.
       grub_allow_reboot:
         type: bool
         default: false
+        description: Allow the reboot handler to reboot the host after GRUB changes.
       grub_options_present:
         type: list
         elements: str
         required: false
+        description: Kernel command line options that must be present.
       grub_options_absent:
         type: list
         elements: str
         required: false
+        description: Kernel command line option keys that must be absent unless also requested as present.
       grub_superuser:
         type: str
         required: false
+        description: Optional GRUB superuser name for bootloader authentication.
       grub_password:
         type: str
         required: false
+        no_log: true
+        description: Optional GRUB PBKDF2 password hash used with grub_superuser.
