@@ -1,7 +1,8 @@
 ---
 # handlers file for grub
 - name: Update grub
-  ansible.builtin.command: "{{ grub_update_grub_command }}"
+  ansible.builtin.command:
+    argv: "{{ grub_update_grub_command }}"
   changed_when: true
   when: (ansible_facts['virtualization_type'] | default('')) not in _container_types
   notify: Reboot
