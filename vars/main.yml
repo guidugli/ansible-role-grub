@@ -25,8 +25,8 @@ _grub_conf_path:
 grub_conf_path: "{{ _grub_conf_path[ansible_facts['os_family']] | default(_grub_conf_path['default']) }}"
 
 _grub_update_grub_command:
- default: "grub2-mkconfig -o {{ grub_conf_path }}"
- Alpine: "grub-mkconfig -o {{ grub_conf_path }}"
+ default: grub2-mkconfig -o "{{ grub_conf_path }}"
+ Alpine: grub-mkconfig -o "{{ grub_conf_path }}"
  Debian: update-grub
 
 grub_update_grub_command: >
